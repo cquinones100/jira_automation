@@ -12,5 +12,4 @@ require 'jira_automation'
 
 require "irb"
 
-
 IRB.start(__FILE__)

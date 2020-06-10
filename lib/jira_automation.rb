@@ -17,12 +17,7 @@ module JiraAutomation
   require 'jira_automation/put'
   require 'jira_automation/issue'
   require 'jira_automation/csv_importer'
+  require 'jira_automation/cli'
 
-  def get_issue(id)
-    Issue.new(key: id)
-  end
-
-  def post_issue(**params)
-    Issue.create(**params)
-  end
+  JiraAutomation::CLI.new(ARGV).start
 end
