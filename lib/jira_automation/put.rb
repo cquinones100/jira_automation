@@ -1,5 +1,5 @@
 module JiraAutomation
-  class Post < Request
+  class Put < Request
     def initialize(body:, **params)
       @body = body
 
@@ -8,7 +8,7 @@ module JiraAutomation
 
     def response
       @response ||= super(url: url) do |uri|
-        Net::HTTP::Post.new(uri).tap do |request|
+        Net::HTTP::Put.new(uri).tap do |request|
           request.body = body.to_json
           request.set_content_type 'application/json'
         end

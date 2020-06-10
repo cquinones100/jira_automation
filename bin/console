@@ -12,16 +12,5 @@ require 'jira_automation'
 
 require "irb"
 
-params = {
-  title: 'Test 3',
-  description: 'This is a test issue of JIRA api',
-  estimate: '2h',
-  assignee: 'carlos',
-  team: JiraAutomation::API_TEAM
-}
-
-def post_issue(**params)
-  JiraAutomation::Issue.create(**params)
-end
 
 IRB.start(__FILE__)
