@@ -79,7 +79,7 @@ module JiraAutomation
 
           puts "Edited Ticket #{issue.key}"
         when 'delete'
-          *args, key = row_value(row, 'ticket link').split('/')
+          *args, key = row_value(row, 'key') || row_value(row, 'ticket link')&.split('/')
 
           issue = Issue.find(key: key)
 
