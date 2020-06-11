@@ -5,7 +5,17 @@ module JiraAutomation
         new(data: Get.new(url: '/issue/' + key).response_body)
       end
 
-      def create(
+      def create(**params)
+        response = Post.new(url: '/issue', body: post_params(**params))
+
+        if response.ok?
+          find(key: response.response_body['key']) 
+        else
+          response.response_body
+        end
+      end
+
+      def post_params(
         title:,
         description: nil,
         project: JiraAutomation::DEFAULT_PROJECT,
@@ -66,15 +76,6 @@ module JiraAutomation
           .tap do |hash|
             hash[:fields].merge!('sprint': { 'id': sprint }) if sprint
           end
-
-
-        response = Post.new(url: '/issue', body: post_body)
-
-        if response.ok?
-          find(key: response.response_body['key']) 
-        else
-          response.response_body
-        end
       end
     end
 
@@ -84,67 +85,8 @@ module JiraAutomation
       @data = data
     end
 
-    def update(
-        title:,
-        description: nil,
-        project: JiraAutomation::DEFAULT_PROJECT,
-        parent: nil,
-        estimate: nil,
-        team: JiraAutomation::DEFAULT_TEAM,
-        assignee: nil,
-        sprint: nil,
-        issue_type: nil
-    )
-      post_body = {
-        'fields': {
-          'project': { 'key': project },
-          'summary': title,
-          'issuetype': { 'name': 'Task' },
-        }
-      }
-        .tap do |hash|
-          if description
-            hash[:fields].merge!(
-              'description': {
-                "version": 1,
-                "type": 'doc',
-                "content": [
-                  {
-                    "type": 'paragraph',
-                    "content": [
-                      {
-                        "type": 'text',
-                        "text": description
-                      }
-                    ]
-                  }
-                ]
-              }
-            )
-          end
-        end
-        .tap do |hash|
-          if estimate
-            hash[:fields].merge!('timetracking': { 'originalEstimate': estimate })
-          end
-        end
-        .tap do |hash|
-          user = team&.find { |user| user['username'] == assignee }
-
-          assignee_id = user && user['accountId']
-
-          hash[:fields].merge!('assignee': { 'id': assignee_id }) if assignee_id
-        end
-        .tap do |hash|
-          hash[:fields].merge!('issuetype': { 'name': issue_type }) if issue_type
-        end
-        .tap do |hash|
-          hash[:fields].merge!('parent': { 'key': parent }) if parent
-          hash[:fields].merge!('issuetype': { 'name': 'Sub-task' }) if parent
-        end
-
-
-      response = Put.new(url: '/issue/' + key, body: post_body)
+    def update(**params)
+      response = Put.new(url: '/issue/' + key, body: self.class.post_params(**params))
 
       if response.ok?
         find(key: response.response_body['key']) 
@@ -165,6 +107,12 @@ module JiraAutomation
 
     def key
       data['key']
+    end
+
+    def delete
+      response = Delete.new(url: '/issue/' + key)
+
+      response
     end
   end
 end

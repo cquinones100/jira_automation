@@ -1,0 +1,5 @@
+ticket link,operation
+https://thing.atlassian.net/browse/ticket-123,delete,
+https://thing.atlassian.net/browse/ticket-123,,
+https://thing.atlassian.net/browse/ticket-123,,
+https://thing.atlassian.net/browse/ticket-123,delete,

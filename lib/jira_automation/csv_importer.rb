@@ -64,28 +64,30 @@ module JiraAutomation
 
           if JiraAutomation::Issue === issue
             created_issues << issue
+
+            puts "Created ticket #{created_issue.key}"
           else
-            errors[index] << errors
+            puts "Row #{index + 1} error:"
+            puts created_issue
           end
         when 'edit'
           next if row_value(row, 'key').nil?
 
-          issue = Issue.find(key: row_value(row, 'key')).update(**params)
-        end
-      end
+          issue = Issue.find(key: row_value(row, 'key'))
 
-      unless created_issues.size.zero?
-        puts "Created the following tickets"
+          issue.update(**params)
 
-        created_issues.each { |issue| puts issue.key }
+          puts "Edited Ticket #{issue.key}"
+        when 'delete'
+          *args, key = row_value(row, 'ticket link').split('/')
 
-        unless errors.size.zero?
-          puts "The following rows errored"
+          issue = Issue.find(key: key)
 
-          errors.each_with_index do |error, index|
-            next if error.nil?
+          response = issue.delete
 
-            puts "Row #{index + 1} #{error}"
+          if response.ok?
+            puts "Deleted Ticket #{key}"
+          else
           end
         end
       end
