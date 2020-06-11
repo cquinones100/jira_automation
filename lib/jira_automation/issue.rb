@@ -2,7 +2,11 @@ module JiraAutomation
   class Issue
     class << self
       def find(key:)
-        new(data: Get.new(url: '/issue/' + key).response_body)
+        issue = new(data: Get.new(url: '/issue/' + key).response_body)
+
+        return unless issue.valid?
+
+        issue
       end
 
       def create(**params)
@@ -56,7 +60,7 @@ module JiraAutomation
           end
           .tap do |hash|
             if estimate
-              hash[:fields].merge!('timetracking': { 'originalEstimate': estimate })
+              hash[:fields].merge!('timetracking': { 'originalEstimate': estimate + 'h' })
             end
           end
           .tap do |hash|
@@ -85,11 +89,15 @@ module JiraAutomation
       @data = data
     end
 
+    def valid?
+      !data.keys.include?('errorMessages') && !data.keys.include?('errors')
+    end
+
     def update(**params)
       response = Put.new(url: '/issue/' + key, body: self.class.post_params(**params))
 
       if response.ok?
-        find(key: response.response_body['key']) 
+        self.class.find(key: key)
       else
         response.response_body
       end

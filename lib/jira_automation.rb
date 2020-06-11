@@ -18,6 +18,7 @@ module JiraAutomation
   require 'jira_automation/issue'
   require 'jira_automation/csv_importer'
   require 'jira_automation/cli'
+  require 'jira_automation/delete'
 
   JiraAutomation::CLI.new(ARGV).start
 end
