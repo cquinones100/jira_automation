@@ -81,8 +81,30 @@ module JiraAutomation
             hash[:fields].merge!('sprint': { 'id': sprint }) if sprint
           end
       end
-    end
 
+      def put_params(
+        title: nil,
+        description: nil,
+        project: JiraAutomation::DEFAULT_PROJECT,
+        parent: nil,
+        estimate: nil,
+        team: JiraAutomation::DEFAULT_TEAM,
+        assignee: nil,
+        sprint: nil,
+        issue_type: nil
+      )
+        { update: {} }.tap do |hash|
+          if estimate
+            hash[:update].merge!(
+              timetracking: [ edit: { originalEstimate: estimate + 'h' } ]
+            )
+          end
+
+          hash[:update].merge!(summary: [ set: title ]) if title
+        end
+      end
+    end
+    
     attr_reader :data
 
     def initialize(data:)
@@ -94,7 +116,7 @@ module JiraAutomation
     end
 
     def update(**params)
-      response = Put.new(url: '/issue/' + key, body: self.class.post_params(**params))
+      response = Put.new(url: '/issue/' + key, body: self.class.put_params(**params))
 
       if response.ok?
         self.class.find(key: key)

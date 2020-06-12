@@ -14,6 +14,11 @@ module JiraAutomation
 
     attr_reader :raw_args
 
+    def update
+      puts `git pull`
+      puts `bundle install`
+    end
+
     def import_csv(path)
       CsvImporter.new(path: path).import
     end
