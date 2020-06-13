@@ -25,7 +25,16 @@ module JiraAutomation
           issues = response['issues']
         end
 
-        results.map { |data| Issue.new(data: data) }
+        return_issues = []
+        threads = []
+
+        results.each do |data|
+          threads << Thread.new { return_issues << Issue.find(key: Issue.new(data: data).key) }
+        end
+
+        threads.each(&:join)
+
+        return_issues
       end
 
       def create(**params)
@@ -177,7 +186,7 @@ module JiraAutomation
         'ticket name' => fields.dig('summary'),
         :description => description,
         :assignee => fields.dig('assignee', 'displayName'),
-        :estimate => fields.dig('timeestimate'),
+        :estimate => estimate,
         :parent => fields.dig('parent', 'key'),
         :reporter => fields.dig('creator', 'displayName'),
         :project => fields.dig('project', 'key')
@@ -199,6 +208,25 @@ module JiraAutomation
             .map { |paragraph_content| paragraph_content['text'] || '' }
         end
             .join("\n")
+    end
+
+    def estimate
+      string = fields.dig('timetracking', 'originalEstimate')
+      return if string.nil?
+
+      components = string.split(' ')
+      estimate_map = {
+        'h' => 1,
+        'd' => 8,
+        'm' => 240
+      }
+
+      components.reduce(0) do |acc, component|
+        value = /\d+/.match(component).send(:[], 0)&.to_i
+        unit = /[a-z]+/.match(component).send(:[], 0)
+
+        acc += value * (estimate_map[unit])
+      end
     end
   end
 end
