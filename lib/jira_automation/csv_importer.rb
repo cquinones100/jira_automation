@@ -25,7 +25,11 @@ module JiraAutomation
         end
 
         threads << Thread.new do
-          operation = row[headers.find_index('operation')]
+          header_index = headers.find_index('operation')
+
+          next if header_index.nil?
+
+          operation = row[header_index]
 
           next if operation.nil?
 
@@ -59,7 +63,7 @@ module JiraAutomation
             end
             .tap do |hash|
               sprint = row_value(row, 'sprint')
-              sprint_field_name = row_value(row, 'sprint field name')
+              sprint_field_name = SPRINT_FIELD_NAME || row_value(row, 'sprint field name')
 
               hash[:sprint] = sprint if sprint
               hash[:sprint_field_name] = sprint_field_name if sprint_field_name

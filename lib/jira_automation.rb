@@ -10,6 +10,7 @@ module JiraAutomation
   TOKEN = ENV['TOKEN']
   DEFAULT_PROJECT = ENV['DEFAULT_PROJECT']
   DEFAULT_TEAM = ENV['DEFAULT_TEAM'] ? JSON.parse(ENV['DEFAULT_TEAM']) : nil
+  SPRINT_FIELD_NAME = ENV['SPRINT_FIELD_NAME']
 
   require 'jira_automation/request'
   require 'jira_automation/get'
