@@ -14,26 +14,29 @@ module JiraAutomation
 
       CSV.foreach(path).with_index do |row, index|
         row = row
+        if index.zero?
+          row.each do |header|
+            next if header.nil?
 
-        threads << Thread.new do
-          if index.zero?
-            row.each do |header|
-              next if header.nil?
-
-              @headers << header.downcase
-            end
-
-            next
+            @headers << header.downcase
           end
 
+          next
+        end
+
+        threads << Thread.new do
           operation = row[headers.find_index('operation')]
 
           next if operation.nil?
 
-          params = {
-            title: row_value(row, 'ticket name'),
-            description: row_value(row, 'description'),
-          }
+          params = {}
+            .tap do |hash|
+              title = row_value(row, 'title')
+              description = row_value(row, 'description')
+
+              hash[:title] = title if title
+              hash[:description] = description if description
+            end
             .tap do |hash|
               project = row_value(row, 'project')
 
@@ -56,8 +59,10 @@ module JiraAutomation
             end
             .tap do |hash|
               sprint = row_value(row, 'sprint')
+              sprint_field_name = row_value(row, 'sprint field name')
 
               hash[:sprint] = sprint if sprint
+              hash[:sprint_field_name] = sprint_field_name if sprint_field_name
             end
 
           case operation
@@ -69,10 +74,10 @@ module JiraAutomation
             if JiraAutomation::Issue === issue
               created_issues << issue
 
-              puts "Created ticket #{created_issue.key}"
+              puts "Created ticket #{issue.key} #{issue.link}"
             else
               puts "Row #{index + 1} error:"
-              puts created_issue
+              puts issue
             end
           when 'edit'
             next if row_value(row, 'key').nil?
@@ -82,10 +87,10 @@ module JiraAutomation
             response = issue.update(**params)
 
             if Issue === response
-              puts "Edited Ticket #{issue.key}"
+              puts "Edited Ticket #{issue.key} #{issue.link}"
             else
               puts "Row #{index + 1} error:"
-              puts created_issue
+              puts response
             end
           when 'delete'
             *args, key = row_value(row, 'key') || row_value(row, 'ticket link')&.split('/')

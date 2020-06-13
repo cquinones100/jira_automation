@@ -119,6 +119,7 @@ module JiraAutomation
         team: JiraAutomation::DEFAULT_TEAM,
         assignee: nil,
         sprint: nil,
+        sprint_field_name: nil,
         issue_type: nil
       )
         { update: {} }.tap do |hash|
@@ -129,6 +130,7 @@ module JiraAutomation
           end
 
           hash[:update].merge!(summary: [ set: title ]) if title
+          hash[:update].merge!(sprint_field_name => [ set: sprint.to_i ]) if sprint && sprint_field_name
         end
       end
     end
@@ -182,7 +184,7 @@ module JiraAutomation
 
       {
         :key => key,
-        :link => BASE_URL.gsub('/rest/api/3', '') + 'browse/' + key,
+        :link => link,
         'ticket name' => fields.dig('summary'),
         :description => description,
         :assignee => fields.dig('assignee', 'displayName'),
@@ -227,6 +229,10 @@ module JiraAutomation
 
         acc += value * (estimate_map[unit])
       end
+    end
+
+    def link
+      BASE_URL.gsub('/rest/api/3', '') + 'browse/' + key
     end
   end
 end
