@@ -9,6 +9,25 @@ module JiraAutomation
         issue
       end
 
+      def find_all(project:, sprint:)
+        jql = "project = '#{project}' AND sprint = '#{sprint}'"
+
+        start_at = -1
+        results = []
+        total_results = nil
+        response = Post.new(url: '/search', body: { jql: jql, startAt: start_at }).response_body
+        issues = response['issues']
+
+        until issues.size.zero?
+          issues.each { |issue| results << issue }
+          start_at = results.size + 1
+          response = Post.new(url: '/search', body: { jql: jql, startAt: start_at }).response_body
+          issues = response['issues']
+        end
+
+        results.map { |data| Issue.new(data: data) }
+      end
+
       def create(**params)
         response = Post.new(url: '/issue', body: post_params(**params))
 
@@ -143,6 +162,43 @@ module JiraAutomation
       response = Delete.new(url: '/issue/' + key)
 
       response
+    end
+
+    def properties
+      values.keys
+    end
+
+    def values
+      return nil unless fields
+
+      {
+        :key => key,
+        :link => BASE_URL.gsub('/rest/api/3', '') + 'browse/' + key,
+        'ticket name' => fields.dig('summary'),
+        :description => description,
+        :assignee => fields.dig('assignee', 'displayName'),
+        :estimate => fields.dig('timeestimate'),
+        :parent => fields.dig('parent', 'key'),
+        :reporter => fields.dig('creator', 'displayName'),
+        :project => fields.dig('project', 'key')
+      }
+    end
+
+    def fields
+      data['fields']
+    end
+    
+    def description
+      (data.dig('fields', 'description', 'content') || []).select do |content|
+        content['type'] == 'paragraph'
+      end
+        .map do |paragraph|
+          paragraph['content'].select do |paragraph_content|
+            paragraph_content['type'] == 'text'
+          end
+            .map { |paragraph_content| paragraph_content['text'] || '' }
+        end
+            .join("\n")
     end
   end
 end

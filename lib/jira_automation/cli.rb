@@ -23,6 +23,14 @@ module JiraAutomation
       CsvImporter.new(path: path).import
     end
 
+    def export_csv(path, project, sprint)
+      CsvExporter.new(
+        path: path,
+        issues: Issue.find_all(project: project, sprint: sprint)
+      )
+        .export
+    end
+
     def update_tickets(*args)
       keys, updates = args
     end
