@@ -122,7 +122,7 @@ module JiraAutomation
         sprint_field_name: nil,
         issue_type: nil
       )
-        { update: {} }.tap do |hash|
+        { update: {}, fields: {} }.tap do |hash|
           if estimate
             hash[:update].merge!(
               timetracking: [ edit: { originalEstimate: estimate + 'h' } ]
@@ -145,8 +145,19 @@ module JiraAutomation
       !data.keys.include?('errorMessages') && !data.keys.include?('errors')
     end
 
-    def update(**params)
+    def update(team: JiraAutomation::DEFAULT_TEAM, **params)
       response = Put.new(url: '/issue/' + key, body: self.class.put_params(**params))
+
+      user = team&.find { |user| user['username'] == params[:assignee].split(' ').first.downcase }
+      assignee_id = user && user['accountId']
+
+      if assignee_id
+        response = Put.new(
+          url: '/issue/' + key + '/assignee',
+          body: { accountId: assignee_id}
+        ) 
+      end
+
 
       if response.ok?
         self.class.find(key: key)
