@@ -11,7 +11,7 @@ module JiraAutomation
       CSV.open(path, 'w') do |csv|
         csv << issues.first.values.keys
 
-        issues.each { |issue| csv << issue.values.values unless issue.values.nil? }
+        issues.sort_by(&:key).each { |issue| csv << issue.values.values unless issue.values.nil? }
       end
 
       puts "Wrote file to #{path}"
