@@ -198,7 +198,7 @@ module JiraAutomation
       {
         :key => key,
         :link => link,
-        'ticket name' => fields.dig('summary'),
+        :title => fields.dig('summary'),
         :description => description,
         :assignee => fields.dig('assignee', 'displayName'),
         :estimate => estimate,
