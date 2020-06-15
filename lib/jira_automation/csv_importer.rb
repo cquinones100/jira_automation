@@ -11,6 +11,9 @@ module JiraAutomation
       created_issues = []
       errors = []
       threads = []
+      tickets = []
+
+      start = Time.now
 
       CSV.foreach(path).with_index do |row, index|
         row = row
@@ -69,6 +72,8 @@ module JiraAutomation
               hash[:sprint_field_name] = sprint_field_name if sprint_field_name
             end
 
+          next if operation.nil?
+
           case operation
           when 'create'
             next unless row_value(row, 'key').nil?
@@ -107,10 +112,14 @@ module JiraAutomation
 
             puts "Deleted Ticket #{key}" if response.ok?
           end
+
+          tickets << nil
         end
       end
 
       threads.each(&:join)
+
+      puts "Touched #{tickets.size} tickets in #{Time.now - start} seconds"
     end
 
     private

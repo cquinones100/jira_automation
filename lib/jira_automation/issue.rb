@@ -56,7 +56,8 @@ module JiraAutomation
         team: JiraAutomation::DEFAULT_TEAM,
         assignee: nil,
         sprint: nil,
-        issue_type: nil
+        issue_type: nil,
+        sprint_field_name: JiraAutomation::SPRINT_FIELD_NAME
       )
         post_body = {
           'fields': {
@@ -106,7 +107,7 @@ module JiraAutomation
             hash[:fields].merge!('issuetype': { 'name': 'Sub-task' }) if parent
           end
           .tap do |hash|
-            hash[:fields].merge!('sprint': { 'id': sprint }) if sprint
+            hash[:fields].merge!(sprint_field_name => [ set: sprint.to_i ]) if sprint && sprint_field_name
           end
       end
 
@@ -119,7 +120,7 @@ module JiraAutomation
         team: JiraAutomation::DEFAULT_TEAM,
         assignee: nil,
         sprint: nil,
-        sprint_field_name: nil,
+        sprint_field_name: JiraAutomation::SPRINT_FIELD_NAME,
         issue_type: nil
       )
         { update: {}, fields: {} }.tap do |hash|
@@ -148,16 +149,17 @@ module JiraAutomation
     def update(team: JiraAutomation::DEFAULT_TEAM, **params)
       response = Put.new(url: '/issue/' + key, body: self.class.put_params(**params))
 
-      user = team&.find { |user| user['username'] == params[:assignee].split(' ').first.downcase }
-      assignee_id = user && user['accountId']
+      if params[:assignee]
+        user = team&.find { |user| user['username'] == params[:assignee].split(' ').first.downcase }
+        assignee_id = user && user['accountId']
 
-      if assignee_id
-        response = Put.new(
-          url: '/issue/' + key + '/assignee',
-          body: { accountId: assignee_id}
-        ) 
+        if assignee_id
+          response = Put.new(
+            url: '/issue/' + key + '/assignee',
+            body: { accountId: assignee_id}
+          ) 
+        end
       end
-
 
       if response.ok?
         self.class.find(key: key)
