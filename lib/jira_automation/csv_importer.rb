@@ -110,7 +110,12 @@ module JiraAutomation
 
             response = issue.delete
 
-            puts "Deleted Ticket #{key}" if response.ok?
+            if Issue === response
+              puts "Deleted Ticket #{key}"
+            else
+              puts "Row #{index + 1} error:"
+              puts response
+            end
           end
 
           tickets << nil

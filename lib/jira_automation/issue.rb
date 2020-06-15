@@ -185,7 +185,11 @@ module JiraAutomation
     def delete
       response = Delete.new(url: '/issue/' + key)
 
-      response
+      if response.ok?
+        self
+      else
+        response.response_body
+      end
     end
 
     def properties

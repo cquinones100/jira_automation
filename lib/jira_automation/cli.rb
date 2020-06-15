@@ -31,6 +31,16 @@ module JiraAutomation
         .export
     end
 
+    def total_estimated_time(project, sprint)
+      total = Issue.find_all(project: project, sprint: sprint).reduce(0) do |time, issue|
+        puts "#{issue.key},#{issue.estimate}"
+
+        time += issue.estimate.to_i
+      end
+
+      puts "total: #{total}"
+    end
+
     def update_tickets(*args)
       keys, updates = args
     end
