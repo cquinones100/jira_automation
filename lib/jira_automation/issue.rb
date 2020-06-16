@@ -206,7 +206,7 @@ module JiraAutomation
         :description => description,
         :assignee => fields.dig('assignee', 'displayName'),
         :estimate => estimate,
-        :parent => fields.dig('parent', 'key'),
+        :parent => parent,
         :reporter => fields.dig('creator', 'displayName'),
         :project => fields.dig('project', 'key')
       }
@@ -214,6 +214,10 @@ module JiraAutomation
 
     def fields
       data['fields']
+    end
+
+    def parent
+      fields.dig('parent', 'key')
     end
     
     def description
