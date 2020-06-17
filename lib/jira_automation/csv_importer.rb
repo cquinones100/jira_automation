@@ -95,9 +95,7 @@ module JiraAutomation
 
             response = issue.update(**params)
 
-            if Issue === response
-              puts "Edited Ticket #{issue.key} #{issue.link}"
-            else
+            unless Issue === response
               puts "Row #{index + 1} error:"
               puts response
             end

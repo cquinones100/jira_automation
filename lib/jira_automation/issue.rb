@@ -13,23 +13,41 @@ module JiraAutomation
         jql = "project = '#{project}' AND sprint = '#{sprint}'"
 
         start_at = -1
-        results = []
         total_results = nil
         response = Post.new(url: '/search', body: { jql: jql, startAt: start_at }).response_body
         issues = response['issues']
+        total = response['total']
 
-        until issues.size.zero?
-          issues.each { |issue| results << issue }
-          start_at = results.size + 1
-          response = Post.new(url: '/search', body: { jql: jql, startAt: start_at }).response_body
-          issues = response['issues']
+        starts = Array.new((total / response['maxResults']) - 1)
+          .tap { |array| array << nil if total & response['maxResults'] > 0 } 
+          .map
+          .with_index { |_, index| response['maxResults'] + (response['maxResults'] *index) }
+
+        get_threads = []
+
+        starts.each do |start_at|
+          get_threads << Thread.new do
+            response = Post.new(
+              url: '/search',
+              body: { jql: jql, startAt: start_at }
+            )
+              .response_body
+
+            issues.push(*response['issues'])
+          end
         end
+
+        get_threads.each(&:join)
 
         return_issues = []
         threads = []
 
-        results.each do |data|
-          threads << Thread.new { return_issues << Issue.find(key: Issue.new(data: data).key) }
+        issues.each do |data|
+          threads << Thread.new do
+            key = Issue.new(data: data).key
+
+            return_issues << Issue.find(key: key)
+          end
         end
 
         threads.each(&:join)
@@ -162,6 +180,12 @@ module JiraAutomation
       end
 
       if response.ok?
+        puts "Edited Issue #{key} #{link}"
+
+        params.each do |param_key, param_value|
+          puts "  #{param_key}: #{param_value}"
+        end
+
         self.class.find(key: key)
       else
         response.response_body
@@ -202,7 +226,7 @@ module JiraAutomation
       {
         :key => key,
         :link => link,
-        :title => fields.dig('summary'),
+        :title => title,
         :description => description,
         :assignee => fields.dig('assignee', 'displayName'),
         :estimate => estimate,
@@ -210,6 +234,10 @@ module JiraAutomation
         :reporter => fields.dig('creator', 'displayName'),
         :project => fields.dig('project', 'key')
       }
+    end
+
+    def title
+      fields.dig('summary')
     end
 
     def fields

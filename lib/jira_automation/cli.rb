@@ -19,6 +19,16 @@ module JiraAutomation
       puts `bundle install`
     end
 
+    def edit_issue(key, *args)
+      args_hash = args.each_with_object({}) do |arg, hash|
+        hash_key, hash_value = arg.split(':')
+
+        hash[hash_key.to_sym] = hash_value
+      end
+
+      Issue.find(key: key).update(**args_hash)
+    end
+
     def import_csv(path)
       CsvImporter.new(path: path).import
     end

@@ -8,16 +8,30 @@ module JiraAutomation
     end
 
     def export
+      total_time = 0
+
       CSV.open(path, 'w') do |csv|
         csv << issues.first[1][:self].values&.keys
 
         issues.each do |key, issue|
+          csv << [issue[:self].title] unless issue[:children].size.zero?
+
           csv << issue[:self].values.values unless issue[:self].values.nil?
+
+          total_time += issue[:self].estimate.to_i
 
           issue[:children].each do |child|
             csv << child.values.values unless child.values.nil?
+
+            total_time += child.estimate.to_i
           end
         end
+
+        time_column = issues.first[1][:self].values.keys.find_index(:estimate)
+
+        padding = Array.new(time_column - 1).join(',')
+
+        csv << "#{padding},Total,#{total_time}".split(',')
       end
 
       puts "Wrote file to #{path}"
