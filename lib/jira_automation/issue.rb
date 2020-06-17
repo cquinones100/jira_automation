@@ -9,6 +9,16 @@ module JiraAutomation
         issue
       end
 
+      def edit_by_key_and_cli_args(key, *args)
+        args_hash = args.each_with_object({}) do |arg, hash|
+          hash_key, hash_value = arg.split(':')
+
+          hash[hash_key.to_sym] = hash_value
+        end
+
+        Issue.find(key: key).update(**args_hash)
+      end
+
       def find_all(project:, sprint:)
         jql = "project = '#{project}' AND sprint = '#{sprint}'"
 
@@ -228,7 +238,7 @@ module JiraAutomation
         :link => link,
         :title => title,
         :description => description,
-        :assignee => fields.dig('assignee', 'displayName'),
+        :assignee => assignee,
         :estimate => estimate,
         :parent => parent,
         :reporter => fields.dig('creator', 'displayName'),
@@ -236,18 +246,10 @@ module JiraAutomation
       }
     end
 
-    def title
-      fields.dig('summary')
+    def assignee
+      fields.dig('assignee', 'displayName')
     end
 
-    def fields
-      data['fields']
-    end
-
-    def parent
-      fields.dig('parent', 'key')
-    end
-    
     def description
       (data.dig('fields', 'description', 'content') || []).select do |content|
         content['type'] == 'paragraph'
@@ -280,8 +282,20 @@ module JiraAutomation
       end
     end
 
+    def fields
+      data['fields']
+    end
+
     def link
       BASE_URL.gsub('/rest/api/3', '') + 'browse/' + key
+    end
+
+    def title
+      fields.dig('summary')
+    end
+
+    def parent
+      fields.dig('parent', 'key')
     end
   end
 end
