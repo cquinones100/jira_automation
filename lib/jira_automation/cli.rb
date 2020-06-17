@@ -41,6 +41,8 @@ module JiraAutomation
     end
 
     def total_estimated_time_by_assignee(project, sprint)
+      puts 'fetching issues'
+
       issues = Issue.find_all(project: project, sprint: sprint)
 
       estimates = issues.each_with_object({}) do |issue, hash|
