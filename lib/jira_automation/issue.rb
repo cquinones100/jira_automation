@@ -27,11 +27,15 @@ module JiraAutomation
         response = Post.new(url: '/search', body: { jql: jql, startAt: start_at }).response_body
         issues = response['issues']
         total = response['total']
+        batch = response['maxResults']
+        starts = [batch]
+        total = total - batch
 
-        starts = Array.new((total / response['maxResults']) - 1)
-          .tap { |array| array << nil if total & response['maxResults'] > 0 } 
-          .map
-          .with_index { |_, index| response['maxResults'] + (response['maxResults'] *index) }
+        while total > 0
+          starts << starts[-1] + batch
+          total -= batch
+        end
+
 
         get_threads = []
 
