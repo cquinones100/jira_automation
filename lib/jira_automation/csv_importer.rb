@@ -65,7 +65,8 @@ module JiraAutomation
               hash[:estimate] = estimate if estimate
             end
             .tap do |hash|
-              sprint = row_value(row, 'sprint')
+              sprint = row_value(row, 'sprint').to_i
+
               sprint_field_name = SPRINT_FIELD_NAME || row_value(row, 'sprint field name')
 
               hash[:sprint] = sprint if sprint

@@ -32,8 +32,6 @@ module JiraAutomation
 
     def total_estimated_time(project, sprint)
       total = Issue.find_all(project: project, sprint: sprint).reduce(0) do |time, issue|
-        puts "#{issue.key},#{issue.estimate}"
-
         time += issue.estimate.to_i
       end
 

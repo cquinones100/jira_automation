@@ -135,7 +135,7 @@ module JiraAutomation
             hash[:fields].merge!('issuetype': { 'name': 'Sub-task' }) if parent
           end
           .tap do |hash|
-            hash[:fields].merge!(sprint_field_name => [ set: sprint.to_i ]) if sprint && sprint_field_name
+            hash[:fields].merge!(sprint_field_name => sprint.to_i) if sprint && sprint_field_name
           end
       end
 

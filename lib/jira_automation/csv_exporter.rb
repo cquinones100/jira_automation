@@ -14,11 +14,11 @@ module JiraAutomation
         csv << issues.first[1][:self].values&.keys
 
         issues.each do |key, issue|
-          csv << [issue[:self].title] unless issue[:children].size.zero?
+          csv << [issue[:self]&.title] unless issue[:children].size.zero?
 
-          csv << issue[:self].values.values unless issue[:self].values.nil?
+          csv << issue[:self].values.values unless issue[:self]&.values.nil?
 
-          total_time += issue[:self].estimate.to_i
+          total_time += issue[:self]&.estimate.to_i
 
           issue[:children].each do |child|
             csv << child.values.values unless child.values.nil?
